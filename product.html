@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nuriya Family Shop</title>
+  <meta name="theme-color" content="#18130d">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Unbounded:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=7">
+</head>
+<body>
+  <div class="topbar" id="topbar"></div>
+  <header class="header" id="header"></header>
+
+  <main class="wrap" id="page"></main>
+  <section class="related wrap" id="related"></section>
+
+  <footer class="footer" id="footer"></footer>
+
+  <script src="js/products.js?v=7"></script>
+  <script src="js/app.js?v=7"></script>
+  <script>
+    (function () {
+      const id = new URLSearchParams(location.search).get("id");
+      let current = 1, kg = 1;
+
+      function draw() {
+        const { t, icon, money, kgFmt, byId, photo, L, cardHTML, bindAdd, stepper, cart, toast } = NFS;
+        const page = document.getElementById("page");
+        const rel = document.getElementById("related");
+        const p = byId(id);
+        if (!p) {
+          page.innerHTML = `<div class="cart-empty" style="margin:40px 0"><h2>${t("notFound")}</h2><a class="btn btn-dark" href="index.html#catalog">${t("back")}</a></div>`;
+          rel.innerHTML = ""; return;
+        }
+        const l = L(p);
+        const cat = CATEGORIES.find(c => c.id === p.cat);
+        document.title = `${l.name} — Nuriya Family Shop`;
+        const thumbs = Array.from({ length: p.photos }, (_, i) => i + 1);
+
+        page.innerHTML = `
+          <nav class="crumbs" aria-label="breadcrumbs">
+            <a href="index.html">${t("home")}</a><span>/</span>
+            <a href="index.html#catalog">${cat ? cat[NFS.lang] : t("catTitle")}</a><span>/</span>
+            <span>${l.name}</span>
+          </nav>
+          <div class="product">
+            <div class="gallery">
+              <div class="main">
+                <img id="mainImg" class="fade" style="view-transition-name:photo" src="${photo(p, current)}" alt="${l.name}" width="750" height="1000">
+                ${p.photos > 1 ? `<div class="dots" aria-hidden="true">${thumbs.map(n => `<i class="${n === current ? "on" : ""}"></i>`).join("")}</div>` : ""}
+                ${p.photos > 1 ? `<button class="nav-arrow prev" type="button" aria-label="←">${icon("left")}</button>
+                <button class="nav-arrow next" type="button" aria-label="→">${icon("right")}</button>` : ""}
+              </div>
+              ${p.photos > 1 ? `<div class="thumbs">${thumbs.map(n =>
+                `<button type="button" data-n="${n}" aria-current="${n === current}" aria-label="${n}"><img src="${photo(p, n)}" alt="" loading="lazy"></button>`).join("")}</div>` : ""}
+            </div>
+            <div class="info">
+              <h1 class="reveal">${l.name}</h1>
+              <p class="sub reveal" style="--d:.06s">${l.short}</p>
+              <div class="prices reveal" style="--d:.12s">
+                <div class="tier"><span>${t("tierRetail")}</span><strong class="tabnum">${money(SHOP.priceRetail)} <small style="font:600 13px var(--body)">${t("perKg")}</small></strong></div>
+                <div class="tier opt"><span>${t("tierOpt")}</span><strong class="tabnum">${money(SHOP.priceOpt)} <small style="font:600 13px var(--body)">${t("perKg")}</small></strong></div>
+              </div>
+              ${p.sizes ? `<div class="sizes reveal" style="--d:.16s">${t("sizes")}: ${p.sizes}</div>` : ""}
+              <div class="buy reveal" style="--d:.2s" id="buy"></div>
+              <p class="line-total" id="lineTotal"></p>
+              <h2>${t("about")}</h2>
+              <p class="desc">${l.desc}</p>
+              <h2>${t("features")}</h2>
+              <ul class="feats">${l.features.map(f => `<li>${icon("check")}<span>${f}</span></li>`).join("")}</ul>
+              <p class="note">${t("priceNote")}</p>
+              <div class="ask">
+                <p>${t("askText")}</p>
+                <a class="btn btn-gold" style="min-height:44px;padding:0 18px" href="https://t.me/${SHOP.admin}" target="_blank" rel="noopener">${icon("send")}${t("askBtn")}</a>
+              </div>
+            </div>
+          </div>`;
+
+        /* Галерея */
+        const setPhoto = (n, dir) => {
+          const old = current;
+          current = ((n - 1 + p.photos) % p.photos) + 1;
+          if (current === old) return;
+          const img = document.getElementById("mainImg");
+          const d = dir || (current > old ? 1 : -1);
+          img.src = photo(p, current);
+          img.classList.remove("slide-l", "slide-r"); void img.offsetWidth;
+          if (!NFS.reduced) img.classList.add(d > 0 ? "slide-l" : "slide-r");
+          page.querySelectorAll(".thumbs button").forEach(b => b.setAttribute("aria-current", Number(b.dataset.n) === current));
+          page.querySelectorAll(".dots i").forEach((dot, i) => dot.classList.toggle("on", i + 1 === current));
+        };
+        page.querySelectorAll(".thumbs button").forEach(b => b.addEventListener("click", () => setPhoto(Number(b.dataset.n))));
+        const prev = page.querySelector(".prev"), next = page.querySelector(".next");
+        if (prev) prev.addEventListener("click", () => setPhoto(current - 1, -1));
+        if (next) next.addEventListener("click", () => setPhoto(current + 1, 1));
+
+        /* Листание пальцем (телефон) и стрелками клавиатуры */
+        const main = page.querySelector(".gallery .main");
+        if (p.photos > 1) {
+          let x0 = null, y0 = 0;
+          main.addEventListener("pointerdown", e => { if (e.target.closest("button")) return; x0 = e.clientX; y0 = e.clientY; });
+          main.addEventListener("pointerup", e => {
+            if (x0 === null) return;
+            const dx = e.clientX - x0, dy = e.clientY - y0; x0 = null;
+            if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) setPhoto(current + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+          });
+          main.addEventListener("pointercancel", () => { x0 = null; });
+          main.addEventListener("dragstart", e => e.preventDefault());
+          if (!window._nfsKeys) {
+            window._nfsKeys = true;
+            document.addEventListener("keydown", e => {
+              if (e.target.closest && e.target.closest("input, textarea")) return;
+              if (e.key === "ArrowRight") document.querySelector(".gallery .next")?.click();
+              if (e.key === "ArrowLeft") document.querySelector(".gallery .prev")?.click();
+            });
+          }
+        }
+
+        /* Вес и кнопка */
+        const lineTotal = document.getElementById("lineTotal");
+        const drawTotal = () => {
+          const per = cart.pricePerKg(kg);
+          lineTotal.innerHTML = `${t("lineTotal")} <b class="tabnum">${money(per * kg)} ${t("cur")}</b> (${kgFmt(kg)} ${t("kg")} × ${money(per)})`;
+        };
+        const buy = document.getElementById("buy");
+        buy.appendChild(stepper(kg, v => { kg = v; drawTotal(); }));
+        const btn = document.createElement("button");
+        btn.className = "btn btn-dark"; btn.type = "button";
+        btn.innerHTML = `${icon("bag")}${t("add")}`;
+        btn.addEventListener("click", () => NFS.addToCart(p.id, kg, document.getElementById("mainImg")));
+        buy.appendChild(btn);
+        drawTotal();
+
+        /* Похожие товары */
+        const others = PRODUCTS.filter(x => x.id !== p.id);
+        const same = others.filter(x => x.cat === p.cat);
+        const pick = same.concat(others.filter(x => x.cat !== p.cat)).slice(0, 4);
+        rel.innerHTML = `<h2 class="section-title reveal">${t("related")}</h2><div class="grid">${pick.map(cardHTML).join("")}</div>`;
+        rel.querySelectorAll(".card").forEach((c, i) => { c.classList.add("reveal"); c.style.setProperty("--d", i * 0.16 + "s"); });
+        bindAdd(rel);
+      }
+      NFS.page(draw);
+    })();
+  </script>
+</body>
+</html>

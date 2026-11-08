@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Savat — Nuriya Family Shop</title>
+  <meta name="theme-color" content="#18130d">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Unbounded:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=7">
+</head>
+<body>
+  <div class="topbar" id="topbar"></div>
+  <header class="header" id="header"></header>
+
+  <main class="wrap cart-page">
+    <nav class="crumbs" aria-label="breadcrumbs"><a href="index.html" data-t="home"></a><span>/</span><span data-t="cartTitle"></span></nav>
+    <h1 data-t="cartTitle"></h1>
+    <div id="cart"></div>
+  </main>
+
+  <footer class="footer" id="footer"></footer>
+
+  <script src="js/products.js?v=7"></script>
+  <script src="js/app.js?v=7"></script>
+  <script>
+    (function () {
+      let lastTotal = null;
+      function draw() {
+        const { t, icon, money, kgFmt, byId, photo, L, cart, stepper } = NFS;
+        const box = document.getElementById("cart");
+        const items = cart.items();
+        document.title = `${t("cartTitle")} — Nuriya Family Shop`;
+
+        if (!items.length) {
+          box.innerHTML = `<div class="cart-empty">
+            <div class="ic">${icon("bag")}</div>
+            <h2>${t("cartEmpty")}</h2><p>${t("cartEmptyP")}</p>
+            <a class="btn btn-dark" href="index.html#catalog">${icon("hanger")}${t("heroCta")}</a></div>`;
+          return;
+        }
+
+        box.innerHTML = `<div class="cart-layout">
+          <div>
+            <ul class="cart-list" id="list"></ul>
+            <button class="remove" type="button" id="clear" style="margin-top:14px">${icon("trash")}${t("clear")}</button>
+          </div>
+          <aside class="summary" aria-live="polite" id="summary"></aside>
+        </div>`;
+
+        const list = document.getElementById("list");
+        items.forEach((it, idx) => {
+          const p = byId(it.id), l = L(p);
+          const li = document.createElement("li");
+          li.className = "cart-item";
+          li.innerHTML = `<a href="product.html?id=${p.id}"><img class="fade" src="${photo(p)}" alt="${l.name}" loading="lazy"></a>
+            <div>
+              <h3><a href="product.html?id=${p.id}">${l.name}</a></h3>
+              <p class="per">${l.short}</p>
+              <div class="row"><span class="st"></span><span class="sum tabnum"></span></div>
+              <button class="remove" type="button">${icon("trash")}${t("remove")}</button>
+            </div>`;
+          li.querySelector(".st").appendChild(stepper(it.kg, v => { cart.setKg(p.id, v); it.kg = v; summary(); }));
+          li.querySelector(".remove").addEventListener("click", () => {
+            cart.remove(p.id);
+            if (!cart.items().length || NFS.reduced) { draw(); return; }
+            li.classList.add("leaving");
+            setTimeout(() => {
+              li.style.height = li.offsetHeight + "px"; li.classList.add("collapse"); void li.offsetHeight;
+              li.style.height = "0px"; li.style.paddingBlock = "0px"; li.style.marginBottom = "-12px";
+              setTimeout(() => { li.remove(); summary(); }, 400);
+            }, 300);
+          });
+          li.classList.add("reveal"); li.style.setProperty("--d", Math.min(idx, 6) * 0.14 + "s");
+          list.appendChild(li);
+        });
+        document.getElementById("clear").addEventListener("click", () => { cart.clear(); draw(); });
+
+        function summary() {
+          const kg = cart.totalKg(), per = cart.pricePerKg(kg), isOpt = kg >= SHOP.optMinKg;
+          list.querySelectorAll(".cart-item").forEach((li, i) => {
+            const cur = cart.items()[i]; if (cur) li.querySelector(".sum").textContent = `${money(cur.kg * per)} ${t("cur")}`;
+          });
+          const left = Math.max(0, SHOP.optMinKg - kg);
+          document.getElementById("summary").innerHTML = `
+            <h2>${t("summary")}</h2>
+            <div class="r"><span>${t("totalKg")}</span><b>${kgFmt(kg)} ${t("kg")}</b></div>
+            <div class="r"><span>${t("pricePer")}</span><b>${money(per)} ${t("cur")}</b></div>
+            <div class="r total"><span>${t("total")}</span><b class="tabnum" id="total">${money(lastTotal === null ? kg * per : lastTotal)}</b></div>
+            <div class="progress" aria-hidden="true"><i style="width:${Math.min(100, kg / SHOP.optMinKg * 100)}%"></i></div>
+            <p class="hint ${isOpt ? "good" : ""}">${isOpt ? t("optOn") : t("toOpt").replace("{n}", kgFmt(left))}</p>
+            <a class="btn btn-gold" href="https://t.me/${SHOP.admin}" target="_blank" rel="noopener">${icon("send")}${t("checkout")}</a>
+            <p class="small">${t("checkoutNote")}<br>${t("approx")}</p>`;
+          const tot = document.getElementById("total");
+          tot.dataset.val = lastTotal === null ? kg * per : lastTotal;
+          NFS.tween(tot, kg * per, money);
+          lastTotal = kg * per;
+        }
+        summary();
+      }
+      NFS.page(draw);
+    })();
+  </script>
+</body>
+</html>

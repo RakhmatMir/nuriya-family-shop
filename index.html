@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nuriya Family Shop — bolalar kiyimi kilosi bilan</title>
+  <meta name="description" content="Nuriya Family Shop, Farg'ona: saralangan eksport bolalar kiyimlari kilosi bilan — ulgurji va donalab.">
+  <meta name="theme-color" content="#18130d">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Unbounded:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=7">
+</head>
+<body>
+  <div class="topbar" id="topbar"></div>
+  <header class="header" id="header"></header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div>
+          <h1 data-t="heroTitle"></h1>
+          <p class="lead" data-t="heroLead"></p>
+          <div class="hero-actions">
+            <a class="btn btn-dark" href="#catalog"><span data-icon="hanger"></span><span data-t="heroCta"></span></a>
+            <a class="btn btn-line" href="tel:+998994405000"><span data-icon="phone"></span><span data-t="heroCall"></span></a>
+          </div>
+          <div class="price-tag">
+            <b class="tabnum"><span data-price="retail"></span></b>
+            <span data-t="tagPer"></span>
+          </div>
+        </div>
+        <div class="hero-photos">
+          <img class="p1" src="img/pink-3pc-set-1.jpg" alt="" width="600" height="800">
+          <img class="p2" src="img/varsity-set-1.jpg" alt="" width="600" height="800">
+          <img class="p3" src="img/fur-vest-1.jpg" alt="" width="600" height="800">
+          <span class="stamp" data-t="stamp"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="how" id="how">
+      <div class="wrap">
+        <h2 class="reveal" data-t="howTitle"></h2>
+        <ol>
+          <li class="reveal" style="--d:.05s"><span class="ic" data-icon="hanger"></span><div><h3 data-t="how1"></h3><p data-t="how1p"></p></div></li>
+          <li class="reveal" style="--d:.15s"><span class="ic" data-icon="scale"></span><div><h3 data-t="how2"></h3><p data-t="how2p"></p></div></li>
+          <li class="reveal" style="--d:.25s"><span class="ic" data-icon="wallet"></span><div><h3 data-t="how3"></h3><p data-t="how3p"></p></div></li>
+        </ol>
+        <div class="tiers reveal" style="--d:.1s">
+          <div class="tier"><span data-t="tierRetail"></span><strong class="tabnum"><span data-price="retail"></span> <small style="font:600 13px var(--body)" data-t="perKg"></small></strong></div>
+          <div class="tier opt"><span data-t="tierOpt"></span><strong class="tabnum"><span data-price="opt"></span> <small style="font:600 13px var(--body)" data-t="perKg"></small></strong></div>
+        </div>
+        <p class="note" data-t="priceNote"></p>
+      </div>
+    </section>
+
+    <section class="catalog" id="catalog">
+      <div class="wrap">
+        <div class="cat-head reveal">
+          <h2 class="section-title" data-t="catTitle"></h2>
+          <span class="found tabnum" id="found"></span>
+        </div>
+        <div class="chips" id="chips" role="group"></div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </section>
+
+    <section class="visit" id="visit">
+      <div class="wrap">
+        <div class="reveal">
+          <h2 data-t="visitTitle"></h2>
+          <p data-t="visitText"></p>
+          <div class="socials">
+            <a href="https://t.me/savdo_sotiq_mustafo_shop" target="_blank" rel="noopener"><span data-icon="send"></span>Telegram</a>
+            <a href="https://t.me/kiloli_tavar" target="_blank" rel="noopener"><span data-icon="send"></span>@kiloli_tavar</a>
+            <a href="https://www.instagram.com/nuriya__family__shop/" target="_blank" rel="noopener"><span data-icon="insta"></span>Instagram</a>
+          </div>
+        </div>
+        <dl class="reveal" style="--d:.15s">
+          <div><dt data-icon="pin"></dt><dd><b data-t="addrV"></b><span data-t="addrS"></span><br><a href="https://maps.google.com/?q=Farg'ona+Vatniy+Meros" target="_blank" rel="noopener" data-t="map"></a></dd></div>
+          <div><dt data-icon="clock"></dt><dd><b data-t="hours"></b><span data-t="hoursV"></span></dd></div>
+          <div><dt data-icon="phone"></dt><dd><b data-t="phone"></b><a href="tel:+998994405000">+998 99 440 50 00</a> · <a href="https://t.me/Dili5000" target="_blank" rel="noopener">@Dili5000</a></dd></div>
+          <div><dt data-icon="card"></dt><dd><b data-t="pay"></b><span data-t="payV"></span></dd></div>
+        </dl>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" id="footer"></footer>
+
+  <script src="js/products.js?v=7"></script>
+  <script src="js/app.js?v=7"></script>
+  <script>
+    (function () {
+      let active = "all", changed = false;
+      /* Заголовок первого экрана: каждое слово выезжает снизу */
+      function splitHero() {
+        const h = document.querySelector(".hero h1");
+        if (!h) return;
+        let n = 0;
+        const wrapWords = (node) => {
+          [...node.childNodes].forEach(ch => {
+            if (ch.nodeType === 3) {
+              const frag = document.createDocumentFragment();
+              ch.textContent.split(/(\s+)/).forEach(w => {
+                if (!w) return;
+                if (/^\s+$/.test(w)) { frag.appendChild(document.createTextNode(" ")); return; }
+                const ln = document.createElement("span"); ln.className = "ln";
+                const sp = document.createElement("span"); sp.textContent = w; sp.style.setProperty("--d", (n++ * 0.07) + "s");
+                ln.appendChild(sp); frag.appendChild(ln);
+              });
+              ch.replaceWith(frag);
+            } else if (ch.nodeType === 1) wrapWords(ch);
+          });
+        };
+        wrapWords(h);
+      }
+      try { active = sessionStorage.getItem("nfs-cat") || "all"; } catch (e) {}
+      function draw() {
+        const { t, cardHTML, bindAdd } = NFS;
+        const chips = document.getElementById("chips");
+        chips.innerHTML = CATEGORIES.map(c =>
+          `<button class="chip" type="button" data-cat="${c.id}" aria-pressed="${c.id === active}">${c[NFS.lang]}</button>`).join("");
+        chips.querySelectorAll("[data-cat]").forEach(b => b.addEventListener("click", () => {
+          active = b.dataset.cat; try { sessionStorage.setItem("nfs-cat", active); } catch (e) {}
+          changed = true; draw();
+        }));
+        const on = chips.querySelector('[aria-pressed="true"]');
+        if (on) chips.scrollLeft = Math.max(0, on.offsetLeft - chips.offsetLeft - 16);
+        const list = PRODUCTS.filter(p => active === "all" || p.cat === active);
+        const grid = document.getElementById("grid");
+        grid.innerHTML = list.length ? list.map(cardHTML).join("") : `<p class="empty">${t("emptyCat")}</p>`;
+        const cols = getComputedStyle(grid).gridTemplateColumns.split(" ").length || 2;
+        grid.querySelectorAll(".card").forEach((c, i) => {
+          if (changed) { c.classList.add("enter"); c.style.setProperty("--d", Math.min(i, 11) * 0.09 + "s"); }
+          else { c.classList.add("reveal"); c.style.setProperty("--d", (i % cols) * 0.16 + "s"); }
+        });
+        changed = false;
+        splitHero();
+        document.getElementById("found").textContent = `${list.length} ${t("found")}`;
+        bindAdd(grid);
+      }
+      NFS.page(draw);
+    })();
+  </script>
+</body>
+</html>
