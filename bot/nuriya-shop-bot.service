@@ -1,0 +1,14 @@
+[Unit]
+Description=Nuriya Family Shop — Telegram bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/opt/projects/nuriya-shop-bot
+ExecStart=/opt/projects/nuriya-shop-bot/.venv/bin/python main.py
+Restart=always
+RestartSec=5
+MemoryMax=150M
+
+[Install]
+WantedBy=multi-user.target

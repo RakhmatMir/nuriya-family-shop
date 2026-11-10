@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Unbounded:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=7">
+  <link rel="stylesheet" href="css/style.css?v=8">
 </head>
 <body>
   <div class="topbar" id="topbar"></div>
@@ -22,11 +22,33 @@
 
   <footer class="footer" id="footer"></footer>
 
-  <script src="js/products.js?v=7"></script>
-  <script src="js/app.js?v=7"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="js/products.js?v=8"></script>
+  <script src="js/app.js?v=8"></script>
   <script>
     (function () {
       let lastTotal = null;
+      /* Заказ из Telegram: имя и телефон помним, пока покупатель меняет вес */
+      const tgUser = (NFS.tg && NFS.tg.initDataUnsafe && NFS.tg.initDataUnsafe.user) || {};
+      const form = { name: [tgUser.first_name, tgUser.last_name].filter(Boolean).join(" "), phone: "+998 " };
+      const esc = (v) => String(v).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+      function bindOrder() {
+        const f = document.getElementById("tgOrder"); if (!f) return;
+        const nameEl = document.getElementById("oName"), phoneEl = document.getElementById("oPhone"), err = document.getElementById("oErr");
+        nameEl.addEventListener("input", () => { form.name = nameEl.value; });
+        phoneEl.addEventListener("input", () => { form.phone = phoneEl.value; err.textContent = ""; });
+        f.addEventListener("submit", (ev) => {
+          ev.preventDefault();
+          const digits = form.phone.replace(/\D/g, "");
+          if (digits.length < 9) { err.textContent = NFS.t("phoneBad"); phoneEl.focus(); return; }
+          const payload = JSON.stringify({
+            v: 1, lang: NFS.lang, name: form.name.trim(), phone: form.phone.trim(),
+            items: NFS.cart.items().map(i => ({ id: i.id, kg: i.kg }))
+          });
+          NFS.cart.clear();          // заказ уходит боту, Telegram сам закроет каталог
+          NFS.tg.sendData(payload);
+        });
+      }
       function draw() {
         const { t, icon, money, kgFmt, byId, photo, L, cart, stepper } = NFS;
         const box = document.getElementById("cart");
@@ -90,8 +112,17 @@
             <div class="r total"><span>${t("total")}</span><b class="tabnum" id="total">${money(lastTotal === null ? kg * per : lastTotal)}</b></div>
             <div class="progress" aria-hidden="true"><i style="width:${Math.min(100, kg / SHOP.optMinKg * 100)}%"></i></div>
             <p class="hint ${isOpt ? "good" : ""}">${isOpt ? t("optOn") : t("toOpt").replace("{n}", kgFmt(left))}</p>
+            ${NFS.canSend ? `
+            <form class="tg-order" id="tgOrder" novalidate>
+              <label>${t("orderName")}<input id="oName" autocomplete="name" maxlength="60" value="${esc(form.name)}"></label>
+              <label>${t("orderPhone")}<input id="oPhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" value="${esc(form.phone)}"></label>
+              <p class="err" id="oErr" role="alert"></p>
+              <button class="btn btn-gold" type="submit">${icon("send")}${t("orderSend")}</button>
+            </form>
+            <p class="small">${t("orderNoteTg")}<br>${t("approx")}</p>` : `
             <a class="btn btn-gold" href="https://t.me/${SHOP.admin}" target="_blank" rel="noopener">${icon("send")}${t("checkout")}</a>
-            <p class="small">${t("checkoutNote")}<br>${t("approx")}</p>`;
+            <p class="small">${t("checkoutNote")}<br>${t("approx")}</p>`}`;
+          if (NFS.canSend) bindOrder();
           const tot = document.getElementById("total");
           tot.dataset.val = lastTotal === null ? kg * per : lastTotal;
           NFS.tween(tot, kg * per, money);

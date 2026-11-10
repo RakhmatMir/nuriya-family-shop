@@ -31,6 +31,8 @@
       remove: "O'chirish", summary: "Buyurtma", totalKg: "Umumiy og'irlik", pricePer: "1 kg narxi", total: "Jami",
       toOpt: "Ulgurji narxgacha yana {n} kg qoldi", optOn: "Ulgurji narx qo'llandi — 5 kg dan ortiq!",
       checkout: "Buyurtma berish", checkoutNote: "Hozircha buyurtma Telegram orqali admin bilan rasmiylashtiriladi.",
+      orderName: "Ismingiz", orderPhone: "Telefon raqamingiz", orderSend: "Buyurtmani yuborish",
+      orderNoteTg: "Buyurtma do'kon adminiga yuboriladi, u siz bilan bog'lanadi.", phoneBad: "Telefon raqamini to'liq kiriting",
       clear: "Savatni tozalash", approx: "Yakuniy narx do'konda tortilgandan keyin aniqlanadi."
     },
     ru: {
@@ -60,6 +62,8 @@
       remove: "Удалить", summary: "Заказ", totalKg: "Общий вес", pricePer: "Цена за 1 кг", total: "Итого",
       toOpt: "До оптовой цены осталось {n} кг", optOn: "Применена оптовая цена — от 5 кг!",
       checkout: "Оформить заказ", checkoutNote: "Пока заказ оформляется через админа в Telegram.",
+      orderName: "Ваше имя", orderPhone: "Ваш телефон", orderSend: "Отправить заказ",
+      orderNoteTg: "Заказ уйдёт админу магазина, он с вами свяжется.", phoneBad: "Введите номер телефона полностью",
       clear: "Очистить корзину", approx: "Итоговая цена определяется после взвешивания в магазине."
     }
   };
@@ -70,6 +74,18 @@
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* без сохранения */ } }
   };
 
+  /* ---------- Telegram Mini App: сайт открыт внутри бота ---------- */
+  const tg = (window.Telegram && window.Telegram.WebApp) || null;
+  const inTG = !!(tg && tg.platform && tg.platform !== "unknown");
+  // Отправить заказ боту можно, только если каталог открыт кнопкой внизу чата (у неё нет query_id)
+  const canSend = inTG && typeof tg.sendData === "function" && !(tg.initDataUnsafe && tg.initDataUnsafe.query_id);
+  if (inTG) {
+    try { tg.ready(); tg.expand(); tg.setHeaderColor("#18130d"); tg.setBackgroundColor("#18130d"); } catch (e) { /* старый Telegram */ }
+    document.documentElement.classList.add("in-tg");
+  }
+
+  const urlLang = new URLSearchParams(location.search).get("lang");
+  if (urlLang && T[urlLang] && store.get("nfs-lang", null) === null) store.set("nfs-lang", urlLang);
   let lang = store.get("nfs-lang", "uz");
   if (!T[lang]) lang = "uz";
   const t = (k) => (T[lang][k] !== undefined ? T[lang][k] : k);
@@ -375,6 +391,7 @@
   window.NFS = {
     t, icon, money, kgFmt, cart, byId, photo, L, cardHTML, bindAdd, stepper, toast,
     addToCart, flyToCart, fadeImages, reveal, tween, reduced,
+    tg, inTG, canSend,
     get lang() { return lang; },
     page(fn) { pageRender = fn; renderAll(); }
   };
